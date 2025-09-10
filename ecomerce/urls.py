@@ -24,8 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home , name='home'),
     #app urls
-    path('user', include('users.urls')),
-    path('product', include('products.urls')),
+    path('user/', include('users.urls')),
+    path('product/', include('products.urls')),
 ]
 
 
