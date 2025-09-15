@@ -33,10 +33,13 @@
                   <p class="card-text mb-1" style="font-family: 'Times New Roman', Times, serif; font-size: 0.9rem; color: #777;">{{ product.brand }}</p>
                   <p class="card-text fw-bold" style="font-family: 'Times New Roman', Times, serif; font-size: 0.95rem;">{{ product.price }}Rs</p>
                 </div>
+                </a>
+                <div class="container">
+                 <a class="btn btn-success mb-2" href="{% url 'product_edit' product.id %}">Edit</a>
+                 <a class="btn btn-danger mb-2" href="{% url 'product_delete' product.id %}">Delete</a>
+                 </div>
               </div>
-            </a>
           </div>
-        
       {% empty %}
         <p class="text-center">No items available.</p>
       {% endfor %}

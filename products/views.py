@@ -1,8 +1,7 @@
 from django.shortcuts import render , redirect , get_object_or_404
-from . models import Product
-
 from django.shortcuts import render, redirect
-from .models import Product 
+from .models import Product , Review
+from django.contrib.auth.decorators import login_required
 
 def product_form(request):
     if request.method == "POST":
@@ -10,13 +9,20 @@ def product_form(request):
         brand = request.POST.get('brand')
         price = request.POST.get('price')
         image = request.FILES.get('image')
+        image1 = request.FILES.get('image1')
+        image2 = request.FILES.get('image2')
+        image3 = request.FILES.get('image3')
         description = request.POST.get('description')
 
         product = Product(
+            user=request.user,
             name=name,
             brand=brand,
             price=price,
             image=image,
+            image1=image1,
+            image2=image2,
+            image3=image3,
             description=description,
         )
         product.save()
@@ -28,10 +34,59 @@ def product_form(request):
 
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
-    return render(request, 'product_detail.html', {"product": product})
+    reviews = product.reviews.all()
+    return render(request, "product_detail.html", {
+        "product": product,
+        "reviews": reviews
+})
 
 
 
 def my_listing(request):
     products = Product.objects.filter(user=request.user)
     return render(request, 'my_listing.html', {"products": products})
+
+
+
+def product_edit(request, id):
+    product = get_object_or_404(Product, id=id) 
+
+    if request.method == "POST":
+        product.name = request.POST.get('name') 
+        product.brand = request.POST.get('brand')
+        product.price = request.POST.get('price')
+        if 'image' in request.FILES:
+            product.image = request.FILES['image']
+        product.description = request.POST.get('description')
+        product.save()
+        return redirect('my_listing')
+
+    return render(request, 'product_edit.html', {"product": product})
+
+
+def product_delete(request, id):
+    product = get_object_or_404(Product, id=id)
+    product.delete()
+    return redirect('my_listing')
+
+
+
+@login_required
+def product_review(request, id):
+    product = get_object_or_404(Product, id=id)
+
+    if request.method == "POST":
+        name = request.POST["name"]
+        rating = request.POST["rating"]
+        comment = request.POST["comment"]
+
+        Review.objects.create(
+            user=request.user,
+            product=product,
+            name=name,
+            rating=rating,
+            comment=comment
+        )
+        return redirect("product_detail", id=product.id)  # back to detail page
+
+    return render(request, "product_review.html", {"product": product})
