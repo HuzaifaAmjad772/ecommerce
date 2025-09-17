@@ -28,3 +28,18 @@ class Review(models.Model):
     def __str__(self):
         return f'Review by {self.user.username} for {self.product.name}'
 
+
+
+class Bidding(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='bids')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    bid_amount = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    
+    class Meta:
+        ordering = ['-bid_amount']
+
+    def __str__(self):
+        return f'Bid by {self.user.username} for {self.product.name} - Amount: {self.bid_amount}'
+

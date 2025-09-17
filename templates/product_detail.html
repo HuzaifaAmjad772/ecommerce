@@ -19,10 +19,10 @@
     </style>
   </head>
   <body>
-   {% include 'menu.html' %}
+  {% include 'menu.html' %}
     <div class="container mt-5">
       <div class="row">
-         <div class="col-md-6">
+      <div class="col-md-6">
   <!-- Bootstrap Carousel -->
   <div id="productCarousel" class="carousel slide">
     <div class="carousel-inner">
@@ -75,11 +75,15 @@
       {% endif %}
     </div>
   </div>
-         </div>
+      </div>
         <div class="col-md-6">
           <h2 class="fw-bold">{{ product.name }}</h2>
           <p class="text-muted mb-2">Brand: <span class="fw-semibold">{{ product.brand }}</span></p>
           <h3 class="text-danger fw-bold">Rs. {{ product.price }}</h3>
+          {% if highest_bid %}
+    <p>🏆 Highest Bid: <strong>{{ highest_bid.bid_amount }}</strong> 
+    by {{ highest_bid.user.username }}</p>
+    {% endif %}
 
           <div class="mt-3">
             <button class="btn btn-warning btn-lg me-2">Buy Now</button>
@@ -95,34 +99,56 @@
         </div>
       </div>
       <hr>
-      <!-- Reviews -->
-  <div class="container">
+      <div class="row">
+  <!-- Customer Reviews Section -->
+  <div class="col-6">
     <h3 class="mb-4">Customer Reviews</h3>
+
     {% for review in reviews %}
-  <div class="review-box">
-    <p class="review-name">{{ review.name }}</p>
-    <p class="review-stars">
-      {% for i in "12345"|make_list %}
-        {% if forloop.counter <= review.rating %}
-          ⭐
-        {% else %}
-          ☆
-        {% endif %}
-      {% endfor %}
-    </p>
-    <p>{{ review.comment }}</p>
-  </div>
-{% empty %}
-  <p>No reviews yet.Be the First to review that product</p>
-{% endfor %}
+      <div class="review-box mb-3 p-3 border rounded">
+        <p class="review-name font-weight-bold">{{ review.name }}</p>
+        <p class="review-stars">
+          {% for i in "12345"|make_list %}
+            {% if forloop.counter <= review.rating %}
+              <span class="text-warning">⭐</span>
+            {% else %}
+              <span class="text-muted">☆</span>
+            {% endif %}
+          {% endfor %}
+        </p>
+        <p>{{ review.comment }}</p>
+        <small>(on {{ review.created_at|date:"M d, Y H:i" }})</small>
+      </div>
+    {% empty %}
+      <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+    {% endfor %}
 
-    
-
-     {% if user.is_authenticated %}
-    <a href="{% url 'product_review' product.id %}" class="btn btn-primary mt-3">Post Review</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'product_review' product.id %}" class="btn btn-primary mt-3">Post Review</a>
     {% endif %}
-    <br><br>
   </div>
+  <!-- Bidding Section -->
+  <div class="col-6">
+    <h3 class="mb-4">Bids for this product</h3>
+
+    {% if bids %}
+      <ul class="list-group">
+        {% for bid in product.bids.all %}
+          <li class="list-group-item">
+            <strong>{{ bid.user.username }}</strong> — Rs: {{ bid.bid_amount }} <br>
+            <small>(on {{ bid.created_at|date:"M d, Y H:i" }})</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No bids yet. Be the first to place a bid!</p>
+    {% endif %}
+
+    <button type="button" class="btn btn-success mt-3">
+      <a style="color: white; text-decoration: none;" href="{% url 'product_bidding' product.id %}">Place Your Bid</a>
+    </button>
+  </div>
+</div>
 </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
   </body>

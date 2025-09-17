@@ -1,6 +1,6 @@
 from django.shortcuts import render , redirect , get_object_or_404
 from django.shortcuts import render, redirect
-from .models import Product , Review
+from .models import Product , Review , Bidding
 from django.contrib.auth.decorators import login_required
 
 def product_form(request):
@@ -35,19 +35,26 @@ def product_form(request):
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     reviews = product.reviews.all()
+    bids = product.bids.all()   # ordered if you used Meta ordering
+
+    highest_bid = bids.first()  # top bid (None if no bids)
+
     return render(request, "product_detail.html", {
         "product": product,
-        "reviews": reviews
-})
+        "reviews": reviews,
+        "bids": bids,
+        "highest_bid": highest_bid,
+    })
 
 
 
+@login_required
 def my_listing(request):
     products = Product.objects.filter(user=request.user)
     return render(request, 'my_listing.html', {"products": products})
 
 
-
+@login_required
 def product_edit(request, id):
     product = get_object_or_404(Product, id=id) 
 
@@ -63,7 +70,7 @@ def product_edit(request, id):
 
     return render(request, 'product_edit.html', {"product": product})
 
-
+@login_required
 def product_delete(request, id):
     product = get_object_or_404(Product, id=id)
     product.delete()
@@ -90,3 +97,25 @@ def product_review(request, id):
         return redirect("product_detail", id=product.id)  # back to detail page
 
     return render(request, "product_review.html", {"product": product})
+
+
+@login_required
+def product_bidding(request, id):
+    product = get_object_or_404(Product, id=id)
+
+    if request.method == "POST":
+        bid_amount = request.POST.get('bid_amount')
+
+        Bidding.objects.create(
+            bid_amount=bid_amount,
+            product=product,
+            user=request.user,
+        )
+
+        return redirect('product_bidding', id=product.id)
+    bids = product.bids.all().order_by('-bid_amount')
+    return render(request, 'product_bidding.html', {
+        "product": product,
+        "bids": bids,
+    })
+
